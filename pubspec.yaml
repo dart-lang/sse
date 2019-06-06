@@ -17,6 +17,7 @@ dependencies:
   pedantic: ^1.4.0
   stream_channel: '>=1.6.8 <3.0.0'
   shelf: ^0.7.4
+  shelf_proxy: ^0.1.0
   uuid: ^2.0.0
 
 dev_dependencies:
