@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:async/async.dart';
 import 'package:http/browser_client.dart';
 import 'package:logging/logging.dart';
 import 'package:stream_channel/stream_channel.dart';
@@ -40,6 +41,7 @@ class SseClient extends StreamChannelMixin<String> {
     _eventSource.addEventListener('message', _onIncomingMessage);
     _eventSource.addEventListener('control', _onIncomingControlMessage);
     _eventSource.onError.listen(_incomingController.addError);
+    _serializePostingMessage();
   }
 
   Stream<Event> get onOpen => _eventSource.onOpen;
@@ -83,24 +85,23 @@ class SseClient extends StreamChannelMixin<String> {
     close();
   }
 
-  // Makes sure messages are posted in order.
-  Future semaphore;
+  final _messageController = StreamController();
+  StreamQueue get _messageQueue => StreamQueue(_messageController.stream);
 
   void _onOutgoingMessage(dynamic message) async {
-    if (semaphore != null) {
-      await semaphore;
-      _onOutgoingMessage(message);
-      return;
-    }
     var encoded = jsonEncode(message);
-    var completer = Completer();
-    semaphore = completer.future;
-    try {
-      await _client.post(_serverUrl, body: encoded);
-    } catch (e) {
-      _logger.warning('Unable to encode outgoing message: $e');
+    _messageController.add(encoded);
+  }
+
+  void _serializePostingMessage() async {
+    var queue = _messageQueue;
+    while (await queue.hasNext) {
+      var message = await queue.next;
+      try {
+        await _client.post(_serverUrl, body: message);
+      } catch (e) {
+        _logger.warning('Unable to encode outgoing message: $e');
+      }
     }
-    completer.complete();
-    semaphore = null;
   }
 }
