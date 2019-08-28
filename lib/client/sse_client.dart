@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:async/async.dart';
 import 'package:http/browser_client.dart';
 import 'package:logging/logging.dart';
 import 'package:stream_channel/stream_channel.dart';
@@ -41,7 +40,7 @@ class SseClient extends StreamChannelMixin<String> {
     _eventSource.addEventListener('message', _onIncomingMessage);
     _eventSource.addEventListener('control', _onIncomingControlMessage);
     _eventSource.onError.listen(_incomingController.addError);
-    _serializePostingMessage();
+    _startPostingMessages();
   }
 
   Stream<Event> get onOpen => _eventSource.onOpen;
@@ -85,21 +84,17 @@ class SseClient extends StreamChannelMixin<String> {
     close();
   }
 
-  final _messageController = StreamController();
-  StreamQueue get _messageQueue => StreamQueue(_messageController.stream);
+  final _messages = StreamController<dynamic>();
 
   void _onOutgoingMessage(dynamic message) async {
-    _messageController.add(message);
+    _messages.add(message);
   }
 
-  void _serializePostingMessage() async {
-    var queue = _messageQueue;
-    while (await queue.hasNext) {
-      var message = await queue.next;
-      var encoded = jsonEncode(message);
+  void _startPostingMessages() async {
+    await for (var message in _messages.stream) {
       try {
-        await _client.post(_serverUrl, body: encoded);
-      } catch (e) {
+        await _client.post(_serverUrl, body: jsonEncode(message));
+      } on Exception catch (e) {
         _logger.warning('Unable to encode outgoing message: $e');
       }
     }
