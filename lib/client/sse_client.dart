@@ -83,12 +83,24 @@ class SseClient extends StreamChannelMixin<String> {
     close();
   }
 
+  // Makes sure messages are posted in order.
+  Future semaphore;
+
   void _onOutgoingMessage(dynamic message) async {
+    if (semaphore != null) {
+      await semaphore;
+      _onOutgoingMessage(message);
+      return;
+    }
     var encoded = jsonEncode(message);
+    var completer = Completer();
+    semaphore = completer.future;
     try {
       await _client.post(_serverUrl, body: encoded);
     } catch (e) {
       _logger.warning('Unable to encode outgoing message: $e');
     }
+    completer.complete();
+    semaphore = null;
   }
 }
