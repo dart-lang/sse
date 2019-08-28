@@ -89,16 +89,16 @@ class SseClient extends StreamChannelMixin<String> {
   StreamQueue get _messageQueue => StreamQueue(_messageController.stream);
 
   void _onOutgoingMessage(dynamic message) async {
-    var encoded = jsonEncode(message);
-    _messageController.add(encoded);
+    _messageController.add(message);
   }
 
   void _serializePostingMessage() async {
     var queue = _messageQueue;
     while (await queue.hasNext) {
       var message = await queue.next;
+      var encoded = jsonEncode(message);
       try {
-        await _client.post(_serverUrl, body: message);
+        await _client.post(_serverUrl, body: encoded);
       } catch (e) {
         _logger.warning('Unable to encode outgoing message: $e');
       }
