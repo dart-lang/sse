@@ -94,8 +94,10 @@ class SseClient extends StreamChannelMixin<String> {
     await for (var message in _messages.stream) {
       try {
         await _client.post(_serverUrl, body: jsonEncode(message));
-      } on Exception catch (e) {
+      } on JsonUnsupportedObjectError catch (e) {
         _logger.warning('Unable to encode outgoing message: $e');
+      } on ArgumentError catch (e) {
+        _logger.warning('Invalid argument: $e');
       }
     }
   }
