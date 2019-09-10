@@ -17,7 +17,7 @@ String _sseHeaders(String origin) => 'HTTP/1.1 200 OK\r\n'
     'Connection: keep-alive\r\n'
     'Access-Control-Allow-Credentials: true\r\n'
     'Access-Control-Allow-Origin: $origin\r\n'
-    '\r\n';
+    '\n\n';
 
 /// A bi-directional SSE connection between server and browser.
 class SseConnection extends StreamChannelMixin<String> {
@@ -140,7 +140,12 @@ class SseHandler {
     }
     return shelf.Response.ok('', headers: {
       'access-control-allow-credentials': 'true',
-      'access-control-allow-origin': req.headers['origin']
+      'access-control-allow-origin': _getOrigin(req),
     });
   }
+
+  String _getOrigin(shelf.Request req) =>
+      // Firefox does not set header "origin".
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1508661
+      req.headers['origin'] ?? req.headers['host'];
 }
