@@ -18,8 +18,7 @@ String _sseHeaders(String origin) => 'HTTP/1.1 200 OK\r\n'
     'Connection: keep-alive\r\n'
     'Access-Control-Allow-Credentials: true\r\n'
     'Access-Control-Allow-Origin: $origin\r\n'
-    // Firefox requires double new line.
-    '\n\n';
+    '\r\n\r\n';
 
 /// A bi-directional SSE connection between server and browser.
 class SseConnection extends StreamChannelMixin<String> {
