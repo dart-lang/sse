@@ -131,18 +131,14 @@ class SseHandler {
 
   Future<shelf.Response> _handleIncomingMessage(
       shelf.Request req, String path) async {
-    var startTime = DateTime.now();
     try {
       var clientId = req.url.queryParameters['sseClientId'];
       var message = await req.readAsString();
-      print('Handling incoming message: $message');
       var jsonObject = json.decode(message) as String;
       _connections[clientId]?._incomingController?.add(jsonObject);
     } catch (e, st) {
       _logger.fine('Failed to handle incoming message. $e $st');
     }
-    print(
-        'Returning response: ${DateTime.now().difference(startTime).inMilliseconds}');
     return shelf.Response.ok('', headers: {
       'access-control-allow-credentials': 'true',
       'access-control-allow-origin': _originFor(req),
