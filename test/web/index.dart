@@ -7,7 +7,7 @@ import 'dart:html';
 import 'package:sse/client/sse_client.dart';
 
 void main() {
-  var channel = SseClient('/test');
+  var channel = SseClient('/test', withRetry: true);
 
   document.querySelector('button').onClick.listen((_) {
     channel.sink.close();

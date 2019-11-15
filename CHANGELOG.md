@@ -1,3 +1,7 @@
+## 2.2.0
+
+- Add optional retry logic.
+
 ## 2.1.2
 
 - Remove `package:http` dependency.
