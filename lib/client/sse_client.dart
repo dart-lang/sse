@@ -46,6 +46,7 @@ class SseClient extends StreamChannelMixin<String> {
     _eventSource.onError.listen((error) {
       if (!withRetry) {
         _incomingController.addError(error);
+        _eventSource.close();
       } else {
         if (!(_errorTimer?.isActive ?? false)) {
           // By default the SSE client uses keep-alive.

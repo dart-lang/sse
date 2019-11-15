@@ -6901,9 +6901,11 @@
   M.SseClient_closure0.prototype = {
     call$1: function(error) {
       var t1, t2;
-      if (!H.boolConversionCheck(this._box_0.withRetry))
-        this.$this._incomingController.addError$1(error);
-      else {
+      if (!H.boolConversionCheck(this._box_0.withRetry)) {
+        t1 = this.$this;
+        t1._incomingController.addError$1(error);
+        t1._eventSource.close();
+      } else {
         t1 = this.$this;
         t2 = t1._errorTimer;
         t2 = t2 == null ? null : t2._handle != null;
