@@ -1,6 +1,9 @@
-## 2.2.0
+## 3.0.0
 
-- Add optional retry logic.
+- Add retry logic.
+
+** Possible Breaking Change ** Error messages may now be delayed up to 5 seconds
+in the client.
 
 ## 2.1.2
 

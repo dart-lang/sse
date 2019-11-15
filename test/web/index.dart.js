@@ -3311,13 +3311,11 @@
     }
   },
   M = {
-    SseClient$: function(serverUrl, withRetry) {
-      var t2, t1 = {};
-      t1.withRetry = true;
-      t2 = P.String;
-      t2 = new M.SseClient(P.StreamController_StreamController(t2), P.StreamController_StreamController(t2), N.Logger_Logger("SseClient"), P.StreamController_StreamController(null));
-      t2.SseClient$2$withRetry(serverUrl, t1);
-      return t2;
+    SseClient$: function(serverUrl) {
+      var t1 = P.String;
+      t1 = new M.SseClient(P.StreamController_StreamController(t1), P.StreamController_StreamController(t1), N.Logger_Logger("SseClient"), P.StreamController_StreamController(null));
+      t1.SseClient$1(serverUrl);
+      return t1;
     },
     SseClient: function SseClient(t0, t1, t2, t3) {
       var _ = this;
@@ -3330,9 +3328,8 @@
     SseClient_closure: function SseClient_closure(t0) {
       this.$this = t0;
     },
-    SseClient_closure0: function SseClient_closure0(t0, t1) {
-      this._box_0 = t0;
-      this.$this = t1;
+    SseClient_closure0: function SseClient_closure0(t0) {
+      this.$this = t0;
     },
     SseClient__closure: function SseClient__closure(t0, t1) {
       this.$this = t0;
@@ -3357,7 +3354,7 @@
   },
   E = {
     main: function() {
-      var channel = M.SseClient$("/test", true),
+      var channel = M.SseClient$("/test"),
         t1 = J.get$onClick$x(document.querySelector("button")),
         t2 = H.getTypeArgumentByIndex(t1, 0);
       W._EventStreamSubscription$(t1._target, t1._eventType, H.functionTypeCheck(new E.main_closure(channel), {func: 1, ret: -1, args: [t2]}), false, t2);
@@ -4990,18 +4987,6 @@
         _this._sendData$1(value);
       else if ((t1 & 3) === 0)
         _this._ensurePendingEvents$0().add$1(0, new P._DelayedData(value, _this.$ti));
-    },
-    addError$1: function(error) {
-      var _this = this,
-        t1 = _this._state;
-      if (t1 >= 4)
-        throw H.wrapException(_this._badEventState$0());
-      if (error == null)
-        error = new P.NullThrownError();
-      if ((t1 & 1) !== 0)
-        _this._sendError$2(error, null);
-      else if ((t1 & 3) === 0)
-        _this._ensurePendingEvents$0().add$1(0, new P._DelayedError(error, null));
     },
     close$0: function(_) {
       var _this = this,
@@ -6740,11 +6725,9 @@
     }
   };
   M.SseClient.prototype = {
-    SseClient$2$withRetry: function(serverUrl, _box_0) {
-      var clientId, t1, t2, _this = this;
-      if (_box_0.withRetry == null)
-        _box_0.withRetry = false;
-      clientId = F.Uuid$().v1$0();
+    SseClient$1: function(serverUrl) {
+      var t1, t2, _this = this,
+        clientId = F.Uuid$().v1$0();
       _this._eventSource = W.EventSource__factoryEventSource(serverUrl + "?sseClientId=" + clientId, P.LinkedHashMap_LinkedHashMap$_literal(["withCredentials", true], P.String, null));
       _this._serverUrl = serverUrl + "?sseClientId=" + clientId;
       t1 = _this._outgoingController;
@@ -6754,7 +6737,7 @@
       t1 = W.Event;
       t2 = {func: 1, ret: -1, args: [t1]};
       W._EventStreamSubscription$(_this._eventSource, "open", H.functionTypeCheck(new M.SseClient_closure(_this), t2), false, t1);
-      W._EventStreamSubscription$(_this._eventSource, "error", H.functionTypeCheck(new M.SseClient_closure0(_box_0, _this), t2), false, t1);
+      W._EventStreamSubscription$(_this._eventSource, "error", H.functionTypeCheck(new M.SseClient_closure0(_this), t2), false, t1);
       _this._startPostingMessages$0();
     },
     close$0: function(_) {
@@ -6900,25 +6883,29 @@
   };
   M.SseClient_closure0.prototype = {
     call$1: function(error) {
-      var t1, t2;
-      if (!H.boolConversionCheck(this._box_0.withRetry)) {
-        t1 = this.$this;
-        t1._incomingController.addError$1(error);
-        t1._eventSource.close();
-      } else {
-        t1 = this.$this;
+      var t1 = this.$this,
         t2 = t1._errorTimer;
-        t2 = t2 == null ? null : t2._handle != null;
-        if (t2 !== true)
-          t1._errorTimer = P.Timer_Timer(C.Duration_5000000, new M.SseClient__closure(t1, error));
-      }
+      t2 = t2 == null ? null : t2._handle != null;
+      if (t2 !== true)
+        t1._errorTimer = P.Timer_Timer(C.Duration_5000000, new M.SseClient__closure(t1, error));
     },
     $signature: 11
   };
   M.SseClient__closure.prototype = {
     call$0: function() {
-      var t1 = this.$this;
-      t1._incomingController.addError$1(this.error);
+      var t3,
+        t1 = this.$this,
+        t2 = t1._incomingController,
+        error = this.error;
+      if (t2._state >= 4)
+        H.throwExpression(t2._badEventState$0());
+      if (error == null)
+        error = new P.NullThrownError();
+      t3 = t2._state;
+      if ((t3 & 1) !== 0)
+        t2._sendError$2(error, null);
+      else if ((t3 & 3) === 0)
+        t2._ensurePendingEvents$0().add$1(0, new P._DelayedError(error, null));
       t1._eventSource.close();
     },
     $signature: 1
