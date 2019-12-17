@@ -171,31 +171,21 @@ void main() {
     });
 
     test('Client reconnect use the same connection', () async {
-      print('test: 1');
       expect(handler.numberOfClients, 0);
       await webdriver.get('http://localhost:${server.port}');
       var connection = await handler.connections.next;
-      print('test: 2');
       expect(handler.numberOfClients, 1);
-      print('test: 3');
 
       // Close the underlying connection.
       connection.closeSink();
-      print('test: 4');
       await pumpEventQueue();
-      print('test: 5');
 
       // Ensure there's still a connection.
-      print('test: 6');
       expect(handler.numberOfClients, 1);
-      print('test: 7');
 
       // Ensure we can still round-trip data on the original connection.
-      print('test: 8');
       connection.sink.add('bar');
-      print('test: 9');
       expect(await connection.stream.first, 'bar');
-      print('test: 10');
     });
   }, timeout: const Timeout(Duration(seconds: 120)));
 }
