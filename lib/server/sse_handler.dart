@@ -76,6 +76,7 @@ class SseConnection extends StreamChannelMixin<String> {
   }
 
   void _handleDisconnect() {
+    print('handling disconnect!');
     if (_keepAlive == null) {
       _close();
     } else {
@@ -150,6 +151,7 @@ class SseHandler {
         channel.stream.listen((_) {
           // SSE is unidirectional. Responses are handled through POST requests.
         }, onDone: () {
+          print('stream is done!');
           connection._handleDisconnect();
         });
 
