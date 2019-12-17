@@ -44,6 +44,7 @@ class SseConnection extends StreamChannelMixin<String> {
 
   SseConnection(this._sink, {Duration keepAlive}) : _keepAlive = keepAlive {
     _outgoingStreamSubscription = _outgoingController.stream.listen((data) {
+      print('Trying to send ${json.encode(data)}');
       if (!_closedCompleter.isCompleted) {
         try {
           // JSON encode the message to escape new lines.
@@ -53,12 +54,12 @@ class SseConnection extends StreamChannelMixin<String> {
           if (_keepAlive == null) {
             rethrow;
           }
+          print('failed to send (re-queing and pausing) ${json.encode(data)}');
           // If we got here then the sink may have closed but the stream.onDone
           // hasn't fired yet, so pause the subscription, re-queue the message
           // and handle the error as a disconnect.
-          _outgoingStreamSubscription.pause();
-          _outgoingController.add(data);
           _handleDisconnect();
+          _outgoingController.add(data);
         }
       }
     });
@@ -81,6 +82,7 @@ class SseConnection extends StreamChannelMixin<String> {
     print('accepting reconnect');
     _isTimingOut = false;
     _sink = sink;
+    print('resuming sub');
     _outgoingStreamSubscription.resume();
   }
 
