@@ -50,6 +50,9 @@ class SseConnection extends StreamChannelMixin<String> {
           _sink.add('data: ${json.encode(data)}\n');
           _sink.add('\n');
         } catch (StateError) {
+          if (_keepAlive == null) {
+            rethrow;
+          }
           // If we got here then the sink may have closed but the stream.onDone
           // hasn't fired yet, so pause the subscription, re-queue the message
           // and handle the error as a disconnect.
