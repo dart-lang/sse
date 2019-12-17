@@ -49,8 +49,13 @@ class SseConnection extends StreamChannelMixin<String> {
           // JSON encode the message to escape new lines.
           _sink.add('data: ${json.encode(data)}\n');
           _sink.add('\n');
-        } catch (e) {
-          print('Error while trying to write "${json.encode(data)}": $e');
+        } catch (StateError) {
+          // If we got here then the sink may have closed but the stream.onDone
+          // hasn't fired yet, so pause the subscription, re-queue the message
+          // and handle the error as a disconnect.
+          _outgoingStreamSubscription.pause();
+          _outgoingController.add(data);
+          _handleDisconnect();
         }
       }
     });
@@ -79,7 +84,7 @@ class SseConnection extends StreamChannelMixin<String> {
     print('handling disconnect!');
     if (_keepAlive == null) {
       _close();
-    } else {
+    } else if (!_isTimingOut) {
       _outgoingStreamSubscription.pause();
       _isTimingOut = true;
       // If after the timeout period we're still in this state, we'll close.
