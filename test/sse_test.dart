@@ -197,7 +197,7 @@ void main() {
       expect(await connection.stream.first, 'bar');
       print('test: 10');
     });
-  });
+  }, timeout: const Timeout(Duration(seconds: 120)));
 }
 
 FutureOr<shelf.Response> _faviconHandler(shelf.Request request) {

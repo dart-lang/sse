@@ -78,6 +78,7 @@ class SseConnection extends StreamChannelMixin<String> {
   Stream<String> get stream => _incomingController.stream;
 
   void _acceptReconnection(Sink sink) {
+    print('accepting reconnect');
     _isTimingOut = false;
     _sink = sink;
     _outgoingStreamSubscription.resume();
