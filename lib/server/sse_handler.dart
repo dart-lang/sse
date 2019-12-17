@@ -45,9 +45,13 @@ class SseConnection extends StreamChannelMixin<String> {
   SseConnection(this._sink, {Duration keepAlive}) : _keepAlive = keepAlive {
     _outgoingStreamSubscription = _outgoingController.stream.listen((data) {
       if (!_closedCompleter.isCompleted) {
-        // JSON encode the message to escape new lines.
-        _sink.add('data: ${json.encode(data)}\n');
-        _sink.add('\n');
+        try {
+          // JSON encode the message to escape new lines.
+          _sink.add('data: ${json.encode(data)}\n');
+          _sink.add('\n');
+        } catch (e) {
+          print('Error while trying to write "${json.encode(data)}": $e');
+        }
       }
     });
     _outgoingController.onCancel = _close;
