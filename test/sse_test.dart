@@ -93,6 +93,19 @@ void main() {
     expect(handler.numberOfClients, 0);
   });
 
+  test('Client reconnects after being disconnected', () async {
+    expect(handler.numberOfClients, 0);
+    await webdriver.get('http://localhost:${server.port}');
+    var connection = await handler.connections.next;
+    expect(handler.numberOfClients, 1);
+    await connection.sink.close();
+    await pumpEventQueue();
+    expect(handler.numberOfClients, 0);
+
+    // Ensure the client reconnects
+    await handler.connections.next;
+  });
+
   test('Can close from the client-side', () async {
     expect(handler.numberOfClients, 0);
     await webdriver.get('http://localhost:${server.port}');
