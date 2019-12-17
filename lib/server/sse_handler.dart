@@ -28,12 +28,22 @@ class SseConnection extends StreamChannelMixin<String> {
   /// Outgoing messages to the Browser client.
   final _outgoingController = StreamController<String>();
 
-  final Sink _sink;
+  Sink _sink;
+
+  /// How long to wait after a connection drops before considering it closed.
+  final Duration _keepAlive;
+
+  /// Whether the connection is in the timeout period waiting for a reconnect.
+  bool _isTimingOut = false;
+
+  /// The subscription that passes messages outgoing messages to the sink. This
+  /// will be paused during the timeout/reconnect period.
+  StreamSubscription _outgoingStreamSubscription;
 
   final _closedCompleter = Completer<void>();
 
-  SseConnection(this._sink) {
-    _outgoingController.stream.listen((data) {
+  SseConnection(this._sink, {Duration keepAlive}) : _keepAlive = keepAlive {
+    _outgoingStreamSubscription = _outgoingController.stream.listen((data) {
       if (!_closedCompleter.isCompleted) {
         // JSON encode the message to escape new lines.
         _sink.add('data: ${json.encode(data)}\n');
@@ -55,9 +65,35 @@ class SseConnection extends StreamChannelMixin<String> {
   @override
   Stream<String> get stream => _incomingController.stream;
 
+  void _acceptReconnection(Sink sink) {
+    _isTimingOut = false;
+    _sink = sink;
+    _outgoingStreamSubscription.resume();
+  }
+
+  void _handleDisconnect() {
+    if (_keepAlive == null) {
+      _close();
+    } else {
+      _outgoingStreamSubscription.pause();
+      _isTimingOut = true;
+      // If after the timeout period we're still in this state, we'll close.
+      Timer(_keepAlive, () {
+        if (_isTimingOut) {
+          _isTimingOut = false;
+          _close();
+        }
+      });
+    }
+  }
+
+  // TODO(dantup): @visibleForTesting?
+  void closeSink() => _sink.close();
+
   void _close() {
     if (!_closedCompleter.isCompleted) {
       _closedCompleter.complete();
+      _outgoingStreamSubscription.cancel();
       _sink.close();
       if (!_outgoingController.isClosed) _outgoingController.close();
       if (!_incomingController.isClosed) _incomingController.close();
@@ -73,12 +109,13 @@ class SseConnection extends StreamChannelMixin<String> {
 class SseHandler {
   final _logger = Logger('SseHandler');
   final Uri _uri;
+  final Duration _keepAlive;
   final _connections = <String, SseConnection>{};
   final _connectionController = StreamController<SseConnection>();
 
   StreamQueue<SseConnection> _connectionsStream;
 
-  SseHandler(this._uri);
+  SseHandler(this._uri, {Duration keepAlive}) : _keepAlive = keepAlive;
 
   StreamQueue<SseConnection> get connections =>
       _connectionsStream ??= StreamQueue(_connectionController.stream);
@@ -92,20 +129,28 @@ class SseHandler {
       var sink = utf8.encoder.startChunkedConversion(channel.sink);
       sink.add(_sseHeaders(req.headers['origin']));
       var clientId = req.url.queryParameters['sseClientId'];
-      var connection = SseConnection(sink);
-      _connections[clientId] = connection;
-      unawaited(connection._closedCompleter.future.then((_) {
-        _connections.remove(clientId);
-      }));
-      // Remove connection when it is remotely closed or the stream is
-      // cancelled.
-      channel.stream.listen((_) {
-        // SSE is unidirectional. Responses are handled through POST requests.
-      }, onDone: () {
-        connection._close();
-      });
 
-      _connectionController.add(connection);
+      // Check if we already have a connection for this ID that is in the process
+      // of timing out (in which case we can reconnect it transparently).
+      if (_connections[clientId] != null &&
+          _connections[clientId]._isTimingOut) {
+        _connections[clientId]._acceptReconnection(sink);
+      } else {
+        var connection = SseConnection(sink, keepAlive: _keepAlive);
+        _connections[clientId] = connection;
+        unawaited(connection._closedCompleter.future.then((_) {
+          _connections.remove(clientId);
+        }));
+        // Remove connection when it is remotely closed or the stream is
+        // cancelled.
+        channel.stream.listen((_) {
+          // SSE is unidirectional. Responses are handled through POST requests.
+        }, onDone: () {
+          connection._handleDisconnect();
+        });
+
+        _connectionController.add(connection);
+      }
     });
     return shelf.Response.notFound('');
   }
