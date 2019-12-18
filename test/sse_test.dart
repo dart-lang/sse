@@ -10,6 +10,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_static/shelf_static.dart';
 import 'package:sse/server/sse_handler.dart';
+import 'package:sse/src/sse_handler.dart' show closeSink;
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
 
@@ -177,7 +178,7 @@ void main() {
       expect(handler.numberOfClients, 1);
 
       // Close the underlying connection.
-      connection.closeSink();
+      closeSink(connection);
       await pumpEventQueue();
 
       // Ensure there's still a connection.

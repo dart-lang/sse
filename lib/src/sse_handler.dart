@@ -105,9 +105,6 @@ class SseConnection extends StreamChannelMixin<String> {
     }
   }
 
-  // TODO(dantup): @visibleForTesting?
-  void closeSink() => _sink.close();
-
   void _close() {
     if (!_closedCompleter.isCompleted) {
       _closedCompleter.complete();
@@ -213,3 +210,5 @@ class SseHandler {
       // https://bugzilla.mozilla.org/show_bug.cgi?id=1508661
       req.headers['origin'] ?? req.headers['host'];
 }
+
+void closeSink(SseConnection connection) => connection._sink.close();
