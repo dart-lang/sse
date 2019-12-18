@@ -43,6 +43,14 @@ class SseConnection extends StreamChannelMixin<String> {
 
   final _closedCompleter = Completer<void>();
 
+  /// Creates an [SseConnection] for the supplied [_sink].
+  ///
+  /// If [keepAlive] is supplied, the connection will remain active for this
+  /// period after a disconnect and can be reconnected transparently. If there
+  /// is no reconnect within that period, the connection will be closed normally.
+  ///
+  /// If [keepAlive] is not supplied, the connection will be closed immediately
+  /// after a disconnect.
   SseConnection(this._sink, {Duration keepAlive}) : _keepAlive = keepAlive {
     _outgoingStreamSubscription = _outgoingController.stream.listen((data) {
       if (!_closedCompleter.isCompleted) {
