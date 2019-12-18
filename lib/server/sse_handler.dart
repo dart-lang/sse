@@ -36,8 +36,9 @@ class SseConnection extends StreamChannelMixin<String> {
   /// A timer counting down the KeepAlive period (null if connected).
   Timer _keepAliveTimer;
 
-  /// The subscription that passes messages outgoing messages to the sink. This
-  /// will be paused during the timeout/reconnect period.
+  /// The subscription that passes outgoing messages to the sink.
+  ///
+  /// This will be paused during the keepalive period and resumed upon reconnection.
   StreamSubscription _outgoingStreamSubscription;
 
   final _closedCompleter = Completer<void>();
