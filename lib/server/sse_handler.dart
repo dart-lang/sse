@@ -33,8 +33,8 @@ class SseConnection extends StreamChannelMixin<String> {
   /// How long to wait after a connection drops before considering it closed.
   final Duration _keepAlive;
 
-  /// Whether the connection is in the timeout period waiting for a reconnect.
-  bool _isTimingOut = false;
+  /// A timer counting down the KeepAlive period (null if connected).
+  Timer _keepAliveTimer;
 
   /// The subscription that passes messages outgoing messages to the sink. This
   /// will be paused during the timeout/reconnect period.
@@ -77,24 +77,22 @@ class SseConnection extends StreamChannelMixin<String> {
   Stream<String> get stream => _incomingController.stream;
 
   void _acceptReconnection(Sink sink) {
-    _isTimingOut = false;
+    _keepAliveTimer.cancel();
+    _keepAliveTimer = null;
     _sink = sink;
     _outgoingStreamSubscription.resume();
   }
 
   void _handleDisconnect() {
     if (_keepAlive == null) {
+      // Close immediately if we're not keeping alive.
       _close();
-    } else if (!_isTimingOut) {
+    } else if (_keepAliveTimer == null) {
+      // Otherwise pause sending messages and set a timer to close after the
+      // timeout period. If the connection comes back, this will be unpaused
+      // and the timer cancelled.
       _outgoingStreamSubscription.pause();
-      _isTimingOut = true;
-      // If after the timeout period we're still in this state, we'll close.
-      Timer(_keepAlive, () {
-        if (_isTimingOut) {
-          _isTimingOut = false;
-          _close();
-        }
-      });
+      _keepAliveTimer = Timer(_keepAlive, _close);
     }
   }
 
@@ -144,7 +142,7 @@ class SseHandler {
       // Check if we already have a connection for this ID that is in the process
       // of timing out (in which case we can reconnect it transparently).
       if (_connections[clientId] != null &&
-          _connections[clientId]._isTimingOut) {
+          _connections[clientId]._keepAliveTimer != null) {
         _connections[clientId]._acceptReconnection(sink);
       } else {
         var connection = SseConnection(sink, keepAlive: _keepAlive);
