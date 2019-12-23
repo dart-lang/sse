@@ -188,6 +188,25 @@ void main() {
       connection.sink.add('bar');
       expect(await connection.stream.first, 'bar');
     });
+
+    test('Messages sent during disconnect arrive in-order', () async {
+      expect(handler.numberOfClients, 0);
+      await webdriver.get('http://localhost:${server.port}');
+      var connection = await handler.connections.next;
+      expect(handler.numberOfClients, 1);
+
+      // Close the underlying connection.
+      closeSink(connection);
+      connection.sink.add('one');
+      connection.sink.add('two');
+      await pumpEventQueue();
+
+      // Ensure there's still a connection.
+      expect(handler.numberOfClients, 1);
+
+      // Ensure messages arrive in the same order
+      expect(await connection.stream.take(2).toList(), equals(['one', 'two']));
+    });
   }, timeout: const Timeout(Duration(seconds: 120)));
 }
 
