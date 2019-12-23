@@ -39,11 +39,6 @@ class SseConnection extends StreamChannelMixin<String> {
   /// Whether this connection is currently in the KeepAlive timeout period.
   bool get isInKeepAlivePeriod => _keepAliveTimer?.isActive ?? false;
 
-  /// The subscription that passes outgoing messages to the sink.
-  ///
-  /// This will be paused during the keepalive period and resumed upon reconnection.
-  StreamSubscription _outgoingStreamSubscription;
-
   final _closedCompleter = Completer<void>();
 
   /// Creates an [SseConnection] for the supplied [_sink].
@@ -55,26 +50,39 @@ class SseConnection extends StreamChannelMixin<String> {
   /// If [keepAlive] is not supplied, the connection will be closed immediately
   /// after a disconnect.
   SseConnection(this._sink, {Duration keepAlive}) : _keepAlive = keepAlive {
-    _outgoingStreamSubscription = _outgoingController.stream.listen((data) {
-      if (!_closedCompleter.isCompleted) {
-        try {
-          // JSON encode the message to escape new lines.
-          _sink.add('data: ${json.encode(data)}\n');
-          _sink.add('\n');
-        } catch (StateError) {
-          if (_keepAlive == null) {
-            rethrow;
-          }
-          // If we got here then the sink may have closed but the stream.onDone
-          // hasn't fired yet, so pause the subscription, re-queue the message
-          // and handle the error as a disconnect.
-          _handleDisconnect();
-          _outgoingController.add(data);
-        }
-      }
-    });
+    unawaited(_setUpListener());
     _outgoingController.onCancel = _close;
     _incomingController.onCancel = _close;
+  }
+
+  Future<void> _setUpListener() async {
+    var outgoingStreamQueue = StreamQueue(_outgoingController.stream);
+    while (await outgoingStreamQueue.hasNext) {
+      // If we're in a KeepAlive timeout, there's nowhere to send messages so
+      // wait a short period and check again.
+      if (isInKeepAlivePeriod) {
+        await Future.delayed(const Duration(milliseconds: 200));
+        continue;
+      }
+
+      // Peek the data so we don't remove it from the stream if we're unable to
+      // send it.
+      final data = await outgoingStreamQueue.peek;
+      try {
+        // JSON encode the message to escape new lines.
+        _sink.add('data: ${json.encode(data)}\n');
+        _sink.add('\n');
+        await outgoingStreamQueue.next; // Consume from stream if no errors.
+      } catch (StateError) {
+        if (_keepAlive == null) {
+          rethrow;
+        }
+        // If we got here then the sink may have closed but the stream.onDone
+        // hasn't fired yet, so pause the subscription and skip calling
+        // `next` so the message remains in the queue to try again.
+        _handleDisconnect();
+      }
+    }
   }
 
   /// The message added to the sink has to be JSON encodable.
@@ -91,7 +99,6 @@ class SseConnection extends StreamChannelMixin<String> {
   void _acceptReconnection(Sink sink) {
     _keepAliveTimer?.cancel();
     _sink = sink;
-    _outgoingStreamSubscription.resume();
   }
 
   void _handleDisconnect() {
@@ -99,10 +106,9 @@ class SseConnection extends StreamChannelMixin<String> {
       // Close immediately if we're not keeping alive.
       _close();
     } else if (!isInKeepAlivePeriod) {
-      // Otherwise if we didn't already have an active timer, pause sending
-      // messages and set a timer to close after the timeout period. If the
-      // connection comes back, this will be unpaused and the timer cancelled.
-      _outgoingStreamSubscription.pause();
+      // Otherwise if we didn't already have an active timer, set a timer to
+      // close after the timeout period. If the connection comes back, this will
+      // be cancelled and all messages left in the queue tried again.
       _keepAliveTimer = Timer(_keepAlive, _close);
     }
   }
@@ -110,7 +116,6 @@ class SseConnection extends StreamChannelMixin<String> {
   void _close() {
     if (!_closedCompleter.isCompleted) {
       _closedCompleter.complete();
-      _outgoingStreamSubscription.cancel();
       _sink.close();
       if (!_outgoingController.isClosed) _outgoingController.close();
       if (!_incomingController.isClosed) _incomingController.close();
