@@ -74,7 +74,7 @@ class SseConnection extends StreamChannelMixin<String> {
         _sink.add('\n');
         await outgoingStreamQueue.next; // Consume from stream if no errors.
       } catch (StateError) {
-        if (_keepAlive == null) {
+        if (_keepAlive == null || _closedCompleter.isCompleted) {
           rethrow;
         }
         // If we got here then the sink may have closed but the stream.onDone
