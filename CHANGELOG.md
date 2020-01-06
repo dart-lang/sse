@@ -2,7 +2,7 @@
 
 - Make `isInKeepAlive` on `SseConnection` private.
 
-* Note that this is a breaking change but in actuality no one should be
+** Note that this is a breaking change but in actuality no one should be
   depending on this API.
 
 ## 3.1.0
