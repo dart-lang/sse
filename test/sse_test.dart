@@ -10,7 +10,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_static/shelf_static.dart';
 import 'package:sse/server/sse_handler.dart';
-import 'package:sse/src/sse_handler.dart' show closeSink;
+import 'package:sse/src/server/sse_handler.dart' show closeSink;
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
 
