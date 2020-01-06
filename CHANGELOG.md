@@ -1,3 +1,10 @@
+## 3.1.1
+
+- Make `isInKeepAlive` on `SseConnection` private.
+
+* Note that this is a breaking change but in actuality no one should be
+  depending on this API.
+
 ## 3.1.0
 
 - Add optional `keepAlive` parameter to the `SseHandler`. If `keepAlive` is
