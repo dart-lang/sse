@@ -181,12 +181,16 @@ void main() {
       closeSink(connection);
       await pumpEventQueue();
 
-      // Ensure there's still a connection.
+      // Ensure there's still a connection and it's marked as in the keep-alive
+      // state.
+      expect(connection.isInKeepAlivePeriod, isTrue);
       expect(handler.numberOfClients, 1);
 
-      // Ensure we can still round-trip data on the original connection.
+      // Ensure we can still round-trip data on the original connection and that
+      // the connection is no longer marked keep-alive once it's reconnected.
       connection.sink.add('bar');
       expect(await connection.stream.first, 'bar');
+      expect(connection.isInKeepAlivePeriod, isFalse);
     });
 
     test('Messages sent during disconnect arrive in-order', () async {
