@@ -179,7 +179,13 @@ void main() {
 
       // Close the underlying connection.
       closeSink(connection);
-      await pumpEventQueue();
+
+      // The isInKeepAlivePeriod flag may only be set for a short period because
+      // the client may connect very quickly, so only pump until it changes.
+      var maxPumps = 50;
+      while (!connection.isInKeepAlivePeriod && maxPumps-- > 0) {
+        await pumpEventQueue(times: 1);
+      }
 
       // Ensure there's still a connection and it's marked as in the keep-alive
       // state.
