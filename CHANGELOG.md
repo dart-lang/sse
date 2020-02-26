@@ -1,4 +1,4 @@
-## 3.1.3
+## 3.2.0
 
 - Re-expose `isInKeepAlivePeriod` flag on `SseConnection`. This flag will be
   `true` when a connection has been dropped and is in the keep-alive period
