@@ -134,6 +134,11 @@ class SseConnection extends StreamChannelMixin<String> {
       if (!_incomingController.isClosed) _incomingController.close();
     }
   }
+
+  /// Immediately close the connection, ignoring any keepAlive period.
+  void shutdown() {
+    _close();
+  }
 }
 
 /// [SseHandler] handles requests on a user defined path to create
@@ -228,6 +233,13 @@ class SseHandler {
       // Firefox does not set header "origin".
       // https://bugzilla.mozilla.org/show_bug.cgi?id=1508661
       req.headers['origin'] ?? req.headers['host'];
+
+  /// Immediately close all connections, ignoring any keepAlive periods.
+  void shutdown() {
+    for (final connection in _connections.values) {
+      connection.shutdown();
+    }
+  }
 }
 
 void closeSink(SseConnection connection) => connection._sink.close();
