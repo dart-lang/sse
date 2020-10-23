@@ -10,6 +10,6 @@ void main() {
 
   channel.stream.listen((s) {
     // Listen for messages and send them back.
-    channel.sink.add(s);
+    channel.send(s);
   });
 }

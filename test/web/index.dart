@@ -10,10 +10,10 @@ void main() {
   var channel = SseClient('/test');
 
   document.querySelector('button').onClick.listen((_) {
-    channel.sink.close();
+    channel.close();
   });
 
   channel.stream.listen((s) {
-    channel.sink.add(s);
+    channel.send(s);
   });
 }

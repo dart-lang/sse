@@ -1,3 +1,11 @@
+## 4.0.0
+
+- Support sending messages with optional guaranteed order.
+
+** Breaking Changes **
+ - `SseClient` no longer extends a `StreamChannelMixin`. Instead of a sink we now
+   have a new method `send` that takes an optional boolean `ordered` parameter.
+
 ## 3.5.0
 
 - Add new `shutdown` methods on `SseHandler` and `SseConnection` to allow closing

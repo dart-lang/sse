@@ -7,14 +7,13 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:logging/logging.dart';
-import 'package:stream_channel/stream_channel.dart';
 import 'package:uuid/uuid.dart';
 
 /// A client for bi-directional sse communcation.
 ///
-/// The client can send any JSON-encodable messages to the server by adding
-/// them to the [sink] and listen to messages from the server on the [stream].
-class SseClient extends StreamChannelMixin<String> {
+/// The client can send any JSON-encodable messages to the server with optional
+/// guaranteed order and listen to messages from the server on the [stream].
+class SseClient {
   final _incomingController = StreamController<String>();
 
   final _outgoingController = StreamController<String>();
@@ -52,22 +51,29 @@ class SseClient extends StreamChannelMixin<String> {
       }
     });
 
-    _startPostingMessages();
+    _startPostingOrderedMessages();
   }
 
   Stream<Event> get onOpen => _eventSource.onOpen;
 
-  /// Add messages to this [StreamSink] to send them to the server.
+  /// Sends a JSON encodable message to the server.
   ///
-  /// The message added to the sink has to be JSON encodable. Messages that fail
-  /// to encode will be logged through a [Logger].
-  @override
-  StreamSink<String> get sink => _outgoingController.sink;
+  /// Messages can be recieved out of order unless [ordered] is true. Note that
+  /// performance is impacted when order is guaranteed.
+  ///
+  /// Messages that fail to encode will be logged through a [Logger]
+  void send(String message, {bool ordered}) {
+    ordered ??= false;
+    if (ordered) {
+      _outgoingController.sink.add(message);
+    } else {
+      _encodeAndSend(message);
+    }
+  }
 
   /// [Stream] of messages sent from the server to this client.
   ///
   /// A message is a decoded JSON object.
-  @override
   Stream<String> get stream => _incomingController.stream;
 
   void close() {
@@ -95,24 +101,26 @@ class SseClient extends StreamChannelMixin<String> {
     close();
   }
 
-  final _messages = StreamController<dynamic>();
+  final _messages = StreamController<String>();
 
-  void _onOutgoingMessage(dynamic message) async {
+  void _onOutgoingMessage(String message) async {
     _messages.add(message);
   }
 
-  void _startPostingMessages() async {
+  void _startPostingOrderedMessages() async {
     await for (var message in _messages.stream) {
-      try {
-        await HttpRequest.request(_serverUrl,
-            method: 'POST',
-            sendData: jsonEncode(message),
-            withCredentials: true);
-      } on JsonUnsupportedObjectError catch (e) {
-        _logger.warning('Unable to encode outgoing message: $e');
-      } on ArgumentError catch (e) {
-        _logger.warning('Invalid argument: $e');
-      }
+      await _encodeAndSend(message);
+    }
+  }
+
+  Future<void> _encodeAndSend(String message) async {
+    try {
+      await HttpRequest.request(_serverUrl,
+          method: 'POST', sendData: jsonEncode(message), withCredentials: true);
+    } on JsonUnsupportedObjectError catch (e) {
+      _logger.warning('Unable to encode outgoing message: $e');
+    } on ArgumentError catch (e) {
+      _logger.warning('Invalid argument: $e');
     }
   }
 }
