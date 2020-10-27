@@ -107,9 +107,9 @@ class SseClient extends StreamChannelMixin<String> {
     try {
       await HttpRequest.request('$_serverUrl&messageId=${++_lastMessageId}',
           method: 'POST', sendData: encodedMessage, withCredentials: true);
-    } catch (_) {
-      _lastMessageId--;
-      rethrow;
+    } catch (e) {
+      _logger.severe('Failed to send $message:\n $e');
+      close();
     }
   }
 }

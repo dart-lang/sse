@@ -7569,7 +7569,7 @@
     _onOutgoingMessage$body$SseClient: function(message) {
       var $async$goto = 0,
         $async$completer = P._makeAsyncAwaitCompleter(type$.dynamic),
-        $async$handler = 1, $async$currentError, $async$next = [], $async$self = this, e, e0, exception, t1, encodedMessage, $async$exception;
+        $async$handler = 1, $async$currentError, $async$next = [], $async$self = this, e, e0, e1, exception, t1, encodedMessage, $async$exception;
       var $async$_onOutgoingMessage$1 = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1) {
           $async$currentError = $async$result;
@@ -7606,9 +7606,10 @@
               // catch
               $async$handler = 2;
               $async$exception = $async$currentError;
-              H.unwrapException($async$exception);
-              --$async$self._lastMessageId;
-              throw $async$exception;
+              e1 = H.unwrapException($async$exception);
+              t1 = "Failed to send " + H.S(message) + ":\n " + H.S(e1);
+              $async$self._logger.log$4(C.Level_SEVERE_1000, t1, null, null);
+              $async$self.close$0(0);
               // goto after finally
               $async$goto = 5;
               break;
@@ -8165,6 +8166,7 @@
     C.JsonDecoder_null = new P.JsonDecoder(null);
     C.JsonEncoder_null = new P.JsonEncoder(null);
     C.Level_INFO_800 = new Y.Level("INFO", 800);
+    C.Level_SEVERE_1000 = new Y.Level("SEVERE", 1000);
     C.Level_WARNING_900 = new Y.Level("WARNING", 900);
     C.List_empty = H.setRuntimeTypeInfo(makeConstList([]), type$.JSArray_dynamic);
     C.List_empty0 = H.setRuntimeTypeInfo(makeConstList([]), H.findType("JSArray<Symbol0*>"));
