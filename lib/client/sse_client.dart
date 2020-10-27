@@ -21,7 +21,7 @@ class SseClient extends StreamChannelMixin<String> {
 
   final _logger = Logger('SseClient');
 
-  int _lastMessageId = 0;
+  int _lastMessageId = -1;
 
   EventSource _eventSource;
 
@@ -104,7 +104,12 @@ class SseClient extends StreamChannelMixin<String> {
     } on ArgumentError catch (e) {
       _logger.warning('Invalid argument: $e');
     }
-    await HttpRequest.request('$_serverUrl&messageId=${++_lastMessageId}',
-        method: 'POST', sendData: encodedMessage, withCredentials: true);
+    try {
+      await HttpRequest.request('$_serverUrl&messageId=${++_lastMessageId}',
+          method: 'POST', sendData: encodedMessage, withCredentials: true);
+    } catch (_) {
+      _lastMessageId--;
+      rethrow;
+    }
   }
 }

@@ -16,7 +16,7 @@ void main() {
   channel.stream.listen((s) {
     if (s.startsWith('send ')) {
       var count = int.parse(s.split(' ').last);
-      for (var i = 1; i <= count; i++) {
+      for (var i = 0; i < count; i++) {
         channel.sink.add('$i');
       }
     } else {

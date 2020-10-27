@@ -47,9 +47,9 @@ class SseConnection extends StreamChannelMixin<String> {
   bool get isInKeepAlivePeriod => _keepAliveTimer?.isActive ?? false;
 
   /// The id of the last processed incoming message.
-  int _lastProcessedId = 0;
+  int _lastProcessedId = -1;
 
-  /// Contains incoming messages that have yet to be processed.
+  /// Incoming messages that have yet to be processed.
   final _pendingMessages =
       HeapPriorityQueue<_SseMessage>((a, b) => a.id.compareTo(b.id));
 

@@ -4305,7 +4305,7 @@
       _._incomingController = t0;
       _._outgoingController = t1;
       _._logger = t2;
-      _._lastMessageId = 0;
+      _._lastMessageId = -1;
       _._errorTimer = _._serverUrl = _._eventSource = null;
     },
     SseClient_closure: function SseClient_closure(t0) {
@@ -7569,10 +7569,12 @@
     _onOutgoingMessage$body$SseClient: function(message) {
       var $async$goto = 0,
         $async$completer = P._makeAsyncAwaitCompleter(type$.dynamic),
-        $async$next = [], $async$self = this, e, e0, exception, t1, encodedMessage;
+        $async$handler = 1, $async$currentError, $async$next = [], $async$self = this, e, e0, exception, t1, encodedMessage, $async$exception;
       var $async$_onOutgoingMessage$1 = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
-        if ($async$errorCode === 1)
-          return P._asyncRethrow($async$result, $async$completer);
+        if ($async$errorCode === 1) {
+          $async$currentError = $async$result;
+          $async$goto = $async$handler;
+        }
         while (true)
           switch ($async$goto) {
             case 0:
@@ -7591,12 +7593,37 @@
                 } else
                   throw exception;
               }
-              $async$goto = 2;
+              $async$handler = 3;
+              $async$goto = 6;
               return P._asyncAwait(W.HttpRequest_request($async$self._serverUrl + "&messageId=" + ++$async$self._lastMessageId, "POST", encodedMessage, true), $async$_onOutgoingMessage$1);
-            case 2:
+            case 6:
               // returning from await.
+              $async$handler = 1;
+              // goto after finally
+              $async$goto = 5;
+              break;
+            case 3:
+              // catch
+              $async$handler = 2;
+              $async$exception = $async$currentError;
+              H.unwrapException($async$exception);
+              --$async$self._lastMessageId;
+              throw $async$exception;
+              // goto after finally
+              $async$goto = 5;
+              break;
+            case 2:
+              // uncaught
+              // goto rethrow
+              $async$goto = 1;
+              break;
+            case 5:
+              // after finally
               // implicit return
               return P._asyncReturn(null, $async$completer);
+            case 1:
+              // rethrow
+              return P._asyncRethrow($async$currentError, $async$completer);
           }
       });
       return P._asyncStartSync($async$_onOutgoingMessage$1, $async$completer);
@@ -7773,7 +7800,7 @@
       H._asStringS(s);
       if (J.startsWith$1$s(s, "send ")) {
         count = P.int_parse(C.JSArray_methods.get$last(s.split(" ")));
-        for (t1 = this.channel._outgoingController, t2 = H._instanceType(t1), t3 = t2._precomputed1, t2 = t2._eval$1("_DelayedData<1>"), i = 1; i <= count; ++i) {
+        for (t1 = this.channel._outgoingController, t2 = H._instanceType(t1), t3 = t2._precomputed1, t2 = t2._eval$1("_DelayedData<1>"), i = 0; i < count; ++i) {
           t4 = t3._as("" + i);
           if (t1._state >= 4)
             H.throwExpression(t1._badEventState$0());

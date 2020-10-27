@@ -75,7 +75,7 @@ void main() {
 
       var expected = <String>[];
       var count = 100;
-      for (var i = 1; i <= count; i++) {
+      for (var i = 0; i < count; i++) {
         expected.add(i.toString());
       }
       connection.sink.add('send $count');
