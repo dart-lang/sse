@@ -11,6 +11,7 @@ environment:
 
 dependencies:
   async: ^2.0.8
+  collection: ^1.0.0
   logging: ^0.11.3+2
   pedantic: ^1.4.0
   stream_channel: '>=1.6.8 <3.0.0'

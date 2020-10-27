@@ -120,7 +120,7 @@ class SseConnection extends StreamChannelMixin<String> {
   @override
   Stream<String> get stream => _incomingController.stream;
 
-  /// Ads an incoming [message] to the [stream].
+  /// Adds an incoming [message] to the [stream].
   ///
   /// This will buffer messages to guarantee order.
   void _addIncomingMessage(int id, String message) {
@@ -133,8 +133,8 @@ class SseConnection extends StreamChannelMixin<String> {
         _lastProcessedId = pendingMessage.id;
         _pendingMessages.removeFirst();
       } else {
-        // A message cam out of order. Wait until we receive previous messages
-        // to process.
+        // A message came out of order. Wait until we receive the previous
+        // messages to process.
         break;
       }
     }
