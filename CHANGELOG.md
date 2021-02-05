@@ -1,6 +1,7 @@
 ## 3.7.0
 
-- Deprecate the client's `onOpen` getter. Instead users should use `onConnect`.
+- Deprecate the client's `onOpen` getter. Messages will now be buffered until
+  a connection is established.
 
 ## 3.6.1
 
