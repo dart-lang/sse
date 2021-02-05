@@ -193,6 +193,13 @@ class SseHandler {
 
   StreamQueue<SseConnection> _connectionsStream;
 
+  /// If [keepAlive] is supplied, connections will remain active for this
+  /// period after a disconnect and can be reconnected transparently. If there
+  /// is no reconnect within that period, the connection will be closed
+  /// normally.
+  ///
+  /// If [keepAlive] is not supplied, connections will be closed immediately
+  /// after a disconnect.
   SseHandler(this._uri, {Duration keepAlive}) : _keepAlive = keepAlive;
 
   StreamQueue<SseConnection> get connections =>
