@@ -193,6 +193,9 @@ class SseHandler {
 
   StreamQueue<SseConnection> _connectionsStream;
 
+  /// [_uri] is the URL under which the server is listening for
+  /// incoming bi-directional SSE connections.
+  ///
   /// If [keepAlive] is supplied, connections will remain active for this
   /// period after a disconnect and can be reconnected transparently. If there
   /// is no reconnect within that period, the connection will be closed
