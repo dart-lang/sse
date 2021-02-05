@@ -1,3 +1,7 @@
+## 3.7.0
+
+- Deprecate the client's `onOpen` getter. Instead users should use `onConnect`.
+
 ## 3.6.1
 
 - Drop dependency on `package:uuid`.

@@ -56,7 +56,10 @@ class SseClient extends StreamChannelMixin<String> {
     });
   }
 
+  @Deprecated('Use onConnect instead.')
   Stream<Event> get onOpen => _eventSource.onOpen;
+
+  Future<void> get onConnect => _eventSource.onOpen.first;
 
   /// Add messages to this [StreamSink] to send them to the server.
   ///
