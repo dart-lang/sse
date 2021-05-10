@@ -13,7 +13,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:stream_channel/stream_channel.dart';
 
 // RFC 2616 requires carriage return delimiters.
-String _sseHeaders(String origin) => 'HTTP/1.1 200 OK\r\n'
+String _sseHeaders(String? origin) => 'HTTP/1.1 200 OK\r\n'
     'Content-Type: text/event-stream\r\n'
     'Cache-Control: no-cache\r\n'
     'Connection: keep-alive\r\n'
@@ -28,7 +28,7 @@ class _SseMessage {
 }
 
 /// A bi-directional SSE connection between server and browser.
-class SseConnection extends StreamChannelMixin<String> {
+class SseConnection extends StreamChannelMixin<String?> {
   /// Incoming messages from the Browser client.
   final _incomingController = StreamController<String>();
 
@@ -38,10 +38,10 @@ class SseConnection extends StreamChannelMixin<String> {
   Sink _sink;
 
   /// How long to wait after a connection drops before considering it closed.
-  final Duration _keepAlive;
+  final Duration? _keepAlive;
 
   /// A timer counting down the KeepAlive period (null if hasn't disconnected).
-  Timer _keepAliveTimer;
+  Timer? _keepAliveTimer;
 
   /// Whether this connection is currently in the KeepAlive timeout period.
   bool get isInKeepAlivePeriod => _keepAliveTimer?.isActive ?? false;
@@ -57,7 +57,7 @@ class SseConnection extends StreamChannelMixin<String> {
 
   /// Wraps the `_outgoingController.stream` to buffer events to enable keep
   /// alive.
-  StreamQueue _outgoingStreamQueue;
+  late StreamQueue _outgoingStreamQueue;
 
   /// Creates an [SseConnection] for the supplied [_sink].
   ///
@@ -67,7 +67,7 @@ class SseConnection extends StreamChannelMixin<String> {
   ///
   /// If [keepAlive] is not supplied, the connection will be closed immediately
   /// after a disconnect.
-  SseConnection(this._sink, {Duration keepAlive}) : _keepAlive = keepAlive {
+  SseConnection(this._sink, {Duration? keepAlive}) : _keepAlive = keepAlive {
     _outgoingStreamQueue = StreamQueue(_outgoingController.stream);
     unawaited(_setUpListener());
     _outgoingController.onCancel = _close;
@@ -154,7 +154,7 @@ class SseConnection extends StreamChannelMixin<String> {
       // been completely closed, set a timer to close after the timeout period.
       // If the connection comes back, this will be cancelled and all messages left
       // in the queue tried again.
-      _keepAliveTimer = Timer(_keepAlive, _close);
+      _keepAliveTimer = Timer(_keepAlive!, _close);
     }
   }
 
@@ -187,11 +187,11 @@ class SseConnection extends StreamChannelMixin<String> {
 class SseHandler {
   final _logger = Logger('SseHandler');
   final Uri _uri;
-  final Duration _keepAlive;
-  final _connections = <String, SseConnection>{};
+  final Duration? _keepAlive;
+  final _connections = <String?, SseConnection>{};
   final _connectionController = StreamController<SseConnection>();
 
-  StreamQueue<SseConnection> _connectionsStream;
+  StreamQueue<SseConnection>? _connectionsStream;
 
   /// [_uri] is the URL under which the server is listening for
   /// incoming bi-directional SSE connections.
@@ -203,7 +203,7 @@ class SseHandler {
   ///
   /// If [keepAlive] is not supplied, connections will be closed immediately
   /// after a disconnect.
-  SseHandler(this._uri, {Duration keepAlive}) : _keepAlive = keepAlive;
+  SseHandler(this._uri, {Duration? keepAlive}) : _keepAlive = keepAlive;
 
   StreamQueue<SseConnection> get connections =>
       _connectionsStream ??= StreamQueue(_connectionController.stream);
@@ -221,8 +221,8 @@ class SseHandler {
       // Check if we already have a connection for this ID that is in the process
       // of timing out (in which case we can reconnect it transparently).
       if (_connections[clientId] != null &&
-          _connections[clientId].isInKeepAlivePeriod) {
-        _connections[clientId]._acceptReconnection(sink);
+          _connections[clientId]!.isInKeepAlivePeriod) {
+        _connections[clientId]!._acceptReconnection(sink);
       } else {
         var connection = SseConnection(sink, keepAlive: _keepAlive);
         _connections[clientId] = connection;
@@ -273,11 +273,11 @@ class SseHandler {
     }
     return shelf.Response.ok('', headers: {
       'access-control-allow-credentials': 'true',
-      'access-control-allow-origin': _originFor(req),
+      'access-control-allow-origin': _originFor(req)!,
     });
   }
 
-  String _originFor(shelf.Request req) =>
+  String? _originFor(shelf.Request req) =>
       // Firefox does not set header "origin".
       // https://bugzilla.mozilla.org/show_bug.cgi?id=1508661
       req.headers['origin'] ?? req.headers['host'];
