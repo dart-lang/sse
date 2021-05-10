@@ -256,6 +256,9 @@
   var C = {},
   H = {JS_CONST: function JS_CONST() {
     },
+    LateError$fieldNI: function(fieldName) {
+      return new H.LateError("Field '" + fieldName + "' has not been initialized.");
+    },
     checkNotNullable: function(value, $name, $T) {
       return value;
     },
@@ -4034,7 +4037,7 @@
   },
   M = {
     SseClient$: function(serverUrl) {
-      var t1 = type$.nullable_String;
+      var t1 = type$.String;
       t1 = new M.SseClient(P.StreamController_StreamController(t1), P.StreamController_StreamController(t1), F.Logger_Logger("SseClient"), new P._AsyncCompleter(new P._Future($.Zone__current, type$._Future_dynamic), type$._AsyncCompleter_dynamic));
       t1.SseClient$1(serverUrl);
       return t1;
@@ -4046,7 +4049,7 @@
       _._logger = t2;
       _._onConnected = t3;
       _._lastMessageId = -1;
-      _._errorTimer = _._serverUrl = _.__SseClient__eventSource = null;
+      _._errorTimer = _.__SseClient__serverUrl = _.__SseClient__eventSource = null;
     },
     SseClient_closure: function SseClient_closure(t0) {
       this.$this = t0;
@@ -4412,7 +4415,7 @@
       t1._asyncComplete$1(null);
       return t1;
     },
-    $signature: 13
+    $signature: 12
   };
   H.EfficientLengthIterable.prototype = {};
   H.ListIterable.prototype = {
@@ -4785,13 +4788,13 @@
     call$2: function(o, tag) {
       return this.getUnknownTag(o, tag);
     },
-    $signature: 14
+    $signature: 13
   };
   H.initHooks_closure1.prototype = {
     call$1: function(tag) {
       return this.prototypeForTag(H._asString(tag));
     },
-    $signature: 15
+    $signature: 14
   };
   H.NativeTypedData.prototype = {};
   H.NativeTypedArray.prototype = {
@@ -4908,7 +4911,7 @@
       t2 = this.span;
       t1.firstChild ? t1.removeChild(t2) : t1.appendChild(t2);
     },
-    $signature: 16
+    $signature: 15
   };
   P._AsyncRun__scheduleImmediateJsOverride_internalCallback.prototype = {
     call$0: function() {
@@ -4984,13 +4987,13 @@
     call$2: function(error, stackTrace) {
       this.bodyFunction.call$2(1, new H.ExceptionAndStackTrace(error, type$.StackTrace._as(stackTrace)));
     },
-    $signature: 17
+    $signature: 16
   };
   P._wrapJsFunctionForAsync_closure.prototype = {
     call$2: function(errorCode, result) {
       this.$protected(H._asInt(errorCode), result);
     },
-    $signature: 18
+    $signature: 17
   };
   P.AsyncError.prototype = {
     toString$0: function(_) {
@@ -5326,7 +5329,7 @@
     call$1: function(_) {
       return this.originalSource;
     },
-    $signature: 20
+    $signature: 19
   };
   P._Future__propagateToListeners_handleValueCallback.prototype = {
     call$0: function() {
@@ -6783,7 +6786,7 @@
       else
         t3.completeError$1(e);
     },
-    $signature: 21
+    $signature: 20
   };
   W.HttpRequestEventTarget.prototype = {};
   W.MessageEvent.prototype = {$isMessageEvent: 1};
@@ -6949,7 +6952,7 @@
       J.$indexSet$ax(t1, key, t2);
       return t2;
     },
-    $signature: 22
+    $signature: 21
   };
   P._convertDartToNative_Value_closure.prototype = {
     call$1: function(element) {
@@ -6961,7 +6964,7 @@
     call$2: function(key, value) {
       this.object[key] = P._convertDartToNative_Value(value);
     },
-    $signature: 23
+    $signature: 22
   };
   P._AcceptStructuredCloneDart2Js.prototype = {
     forEachJsField$2: function(object, action) {
@@ -7085,18 +7088,18 @@
         $parent._children.$indexSet(0, thisName, t1);
       return t1;
     },
-    $signature: 24
+    $signature: 23
   };
   M.SseClient.prototype = {
     get$_eventSource: function() {
       var t1 = this.__SseClient__eventSource;
-      return t1 == null ? H.throwExpression(new H.LateError("Field '_eventSource' has not been initialized.")) : t1;
+      return t1 == null ? H.throwExpression(H.LateError$fieldNI("_eventSource")) : t1;
     },
     SseClient$1: function(serverUrl) {
       var t1, t2, t3, t4, _this = this,
         clientId = T.generateUuidV4();
       _this.__SseClient__eventSource = W.EventSource__factoryEventSource(serverUrl + "?sseClientId=" + clientId, P.LinkedHashMap_LinkedHashMap$_literal(["withCredentials", true], type$.String, type$.dynamic));
-      _this._serverUrl = serverUrl + "?sseClientId=" + clientId;
+      _this.__SseClient__serverUrl = serverUrl + "?sseClientId=" + clientId;
       t1 = new W._EventStream(_this.get$_eventSource(), "open", false, type$._EventStream_Event);
       t1.get$first(t1).whenComplete$1(new M.SseClient_closure(_this));
       C.EventSource_methods.addEventListener$2(_this.get$_eventSource(), "message", _this.get$_onIncomingMessage());
@@ -7127,7 +7130,7 @@
         throw H.wrapException(P.UnsupportedError$('Illegal Control Message "' + H.S(data) + '"'));
     },
     _onIncomingMessage$1: function(message) {
-      this._incomingController.add$1(0, H._asStringQ(C.C_JsonCodec.decode$2$reviver(0, H._asString(new P._AcceptStructuredCloneDart2Js([], []).convertNativeToDart_AcceptStructuredClone$2$mustCopy(type$.MessageEvent._as(type$.Event._as(message)).data, true)), null)));
+      this._incomingController.add$1(0, H._asString(C.C_JsonCodec.decode$2$reviver(0, H._asString(new P._AcceptStructuredCloneDart2Js([], []).convertNativeToDart_AcceptStructuredClone$2$mustCopy(type$.MessageEvent._as(type$.Event._as(message)).data, true)), null)));
     },
     _onOutgoingDone$0: function() {
       this.close$0(0);
@@ -7163,8 +7166,9 @@
                   throw exception;
               }
               $async$handler = 3;
+              t1 = $async$self.__SseClient__serverUrl;
               $async$goto = 6;
-              return P._asyncAwait(W.HttpRequest_request(H.S($async$self._serverUrl) + "&messageId=" + ++$async$self._lastMessageId, "POST", encodedMessage, true), $async$_onOutgoingMessage$1);
+              return P._asyncAwait(W.HttpRequest_request((t1 == null ? H.throwExpression(H.LateError$fieldNI("_serverUrl")) : t1) + "&messageId=" + ++$async$self._lastMessageId, "POST", encodedMessage, true), $async$_onOutgoingMessage$1);
             case 6:
               // returning from await.
               $async$handler = 1;
@@ -7258,13 +7262,13 @@
     call$2: function(value, count) {
       return C.JSString_methods.padLeft$2(C.JSInt_methods.toRadixString$1(value, 16), count, "0");
     },
-    $signature: 12
+    $signature: 11
   };
   T.generateUuidV4__bitsDigits.prototype = {
     call$2: function(bitCount, digitCount) {
       return this._printDigits.call$2(this._generateBits.call$1(bitCount), digitCount);
     },
-    $signature: 12
+    $signature: 11
   };
   R.StreamChannelMixin.prototype = {};
   E.main_closure.prototype = {
@@ -7277,8 +7281,7 @@
   E.main_closure0.prototype = {
     call$1: function(s) {
       var count, t1, t2, t3, i, t4, t5, lastEvent;
-      H._asStringQ(s);
-      s.toString;
+      H._asString(s);
       if (C.JSString_methods.startsWith$1(s, "send ")) {
         count = P.int_parse(C.JSArray_methods.get$last(s.split(" ")));
         for (t1 = this.channel._outgoingController, t2 = H._instanceType(t1), t3 = t2._precomputed1, t2 = t2._eval$1("_DelayedData<1>"), i = 0; i < count; ++i) {
@@ -7305,7 +7308,7 @@
         t1.add$1(0, H._instanceType(t1)._precomputed1._as(s));
       }
     },
-    $signature: 11
+    $signature: 27
   };
   (function aliases() {
     var _ = J.Interceptor.prototype;
@@ -7328,14 +7331,14 @@
     _static_1(P, "async___nullDataHandler$closure", "_nullDataHandler", 2);
     _static_2(P, "async___nullErrorHandler$closure", "_nullErrorHandler", 7);
     _static_0(P, "async___nullDoneHandler$closure", "_nullDoneHandler", 0);
-    _instance(P._Completer.prototype, "get$completeError", 0, 1, null, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 19, 0);
+    _instance(P._Completer.prototype, "get$completeError", 0, 1, null, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 18, 0);
     _instance_2_u(P._Future.prototype, "get$_completeError", "_completeError$2", 7);
     _static_1(P, "convert___defaultToEncodable$closure", "_defaultToEncodable", 5);
     var _;
     _instance_1_u(_ = M.SseClient.prototype, "get$_onIncomingControlMessage", "_onIncomingControlMessage$1", 1);
     _instance_1_u(_, "get$_onIncomingMessage", "_onIncomingMessage$1", 1);
     _instance_0_u(_, "get$_onOutgoingDone", "_onOutgoingDone$0", 0);
-    _instance_1_u(_, "get$_onOutgoingMessage", "_onOutgoingMessage$1", 11);
+    _instance_1_u(_, "get$_onOutgoingMessage", "_onOutgoingMessage$1", 24);
   })();
   (function inheritance() {
     var _mixin = hunkHelpers.mixin,
@@ -7402,7 +7405,7 @@
     mangledNames: {},
     getTypeFromName: getGlobalFromName,
     metadata: [],
-    types: ["~()", "~(Event)", "~(@)", "Null()", "~(~())", "@(@)", "Null(@)", "~(Object,StackTrace)", "Null(Object,StackTrace)", "~(Object?,Object?)", "String(int)", "~(String?)", "String(int,int)", "Future<Null>()", "@(@,String)", "@(String)", "Null(~())", "Null(@,StackTrace)", "~(int,@)", "~(Object[StackTrace?])", "_Future<@>(@)", "~(ProgressEvent)", "@(@,@)", "~(@,@)", "Logger()", "int(int)", "~(MouseEvent)"],
+    types: ["~()", "~(Event)", "~(@)", "Null()", "~(~())", "@(@)", "Null(@)", "~(Object,StackTrace)", "Null(Object,StackTrace)", "~(Object?,Object?)", "String(int)", "String(int,int)", "Future<Null>()", "@(@,String)", "@(String)", "Null(~())", "Null(@,StackTrace)", "~(int,@)", "~(Object[StackTrace?])", "_Future<@>(@)", "~(ProgressEvent)", "@(@,@)", "~(@,@)", "Logger()", "~(String?)", "int(int)", "~(MouseEvent)", "~(String)"],
     interceptorsByTag: null,
     leafTags: null,
     arrayRti: typeof Symbol == "function" && typeof Symbol() == "symbol" ? Symbol("$ti") : "$ti"
@@ -7461,7 +7464,6 @@
       nullable_Future_Null: findType("Future<Null>?"),
       nullable_List_dynamic: findType("List<@>?"),
       nullable_Object: findType("Object?"),
-      nullable_String: findType("String?"),
       nullable__DelayedEvent_dynamic: findType("_DelayedEvent<@>?"),
       nullable__FutureListener_dynamic_dynamic: findType("_FutureListener<@,@>?"),
       nullable_dynamic_Function_Event: findType("@(Event)?"),

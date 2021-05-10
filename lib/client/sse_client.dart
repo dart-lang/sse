@@ -16,9 +16,9 @@ import '../src/util/uuid.dart';
 /// The client can send any JSON-encodable messages to the server by adding
 /// them to the [sink] and listen to messages from the server on the [stream].
 class SseClient extends StreamChannelMixin<String?> {
-  final _incomingController = StreamController<String?>();
+  final _incomingController = StreamController<String>();
 
-  final _outgoingController = StreamController<String?>();
+  final _outgoingController = StreamController<String>();
 
   final _logger = Logger('SseClient');
 
@@ -28,7 +28,7 @@ class SseClient extends StreamChannelMixin<String?> {
 
   late EventSource _eventSource;
 
-  String? _serverUrl;
+  late String _serverUrl;
 
   Timer? _errorTimer;
 
@@ -77,13 +77,13 @@ class SseClient extends StreamChannelMixin<String?> {
   /// The message added to the sink has to be JSON encodable. Messages that fail
   /// to encode will be logged through a [Logger].
   @override
-  StreamSink<String?> get sink => _outgoingController.sink;
+  StreamSink<String> get sink => _outgoingController.sink;
 
   /// [Stream] of messages sent from the server to this client.
   ///
   /// A message is a decoded JSON object.
   @override
-  Stream<String?> get stream => _incomingController.stream;
+  Stream<String> get stream => _incomingController.stream;
 
   void close() {
     _eventSource.close();
@@ -105,7 +105,7 @@ class SseClient extends StreamChannelMixin<String?> {
 
   void _onIncomingMessage(Event message) {
     var decoded =
-        jsonDecode((message as MessageEvent).data as String) as String?;
+        jsonDecode((message as MessageEvent).data as String) as String;
     _incomingController.add(decoded);
   }
 
