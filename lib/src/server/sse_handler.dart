@@ -17,8 +17,8 @@ String _sseHeaders(String? origin) => 'HTTP/1.1 200 OK\r\n'
     'Content-Type: text/event-stream\r\n'
     'Cache-Control: no-cache\r\n'
     'Connection: keep-alive\r\n'
-    'Access-Control-Allow-Credentials: true\r\n'
-    'Access-Control-Allow-Origin: $origin\r\n'
+    'Access-Control-Allow-Credentials: true\r\n' 
+    "${origin != null ? 'Access-Control-Allow-Origin: $origin\r\n'  : ''}"
     '\r\n\r\n';
 
 class _SseMessage {
@@ -273,14 +273,14 @@ class SseHandler {
     }
     return shelf.Response.ok('', headers: {
       'access-control-allow-credentials': 'true',
-      'access-control-allow-origin': _originFor(req)!,
+      'access-control-allow-origin': _originFor(req),
     });
   }
 
-  String? _originFor(shelf.Request req) =>
+  String _originFor(shelf.Request req) =>
       // Firefox does not set header "origin".
       // https://bugzilla.mozilla.org/show_bug.cgi?id=1508661
-      req.headers['origin'] ?? req.headers['host'];
+      req.headers['origin'] ?? req.headers['host']!;
 
   /// Immediately close all connections, ignoring any keepAlive periods.
   void shutdown() {
