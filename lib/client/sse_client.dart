@@ -16,6 +16,8 @@ import '../src/util/uuid.dart';
 ///
 /// Chrome drops outgoing requests on the floor after some threshold. To prevent
 /// these errors we buffer outgoing requests with a pool.
+///
+/// Note Chrome's limit is 6000. So this gives us plenty of headroom.
 final _requestPool = Pool(1000);
 
 /// A client for bi-directional sse communcation.
