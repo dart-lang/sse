@@ -7,9 +7,16 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:logging/logging.dart';
+import 'package:pool/pool.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 import '../src/util/uuid.dart';
+
+/// Limit for the number of concurrent outgoing requests.
+///
+/// Chrome drops outgoing requests on the floor after some threshold. To prevent
+/// these errors we buffer outgoing requests with a pool.
+final _requestPool = Pool(1000);
 
 /// A client for bi-directional sse communcation.
 ///
@@ -115,19 +122,21 @@ class SseClient extends StreamChannelMixin<String?> {
 
   void _onOutgoingMessage(String? message) async {
     String? encodedMessage;
-    try {
-      encodedMessage = jsonEncode(message);
-    } on JsonUnsupportedObjectError catch (e) {
-      _logger.warning('Unable to encode outgoing message: $e');
-    } on ArgumentError catch (e) {
-      _logger.warning('Invalid argument: $e');
-    }
-    try {
-      await HttpRequest.request('$_serverUrl&messageId=${++_lastMessageId}',
-          method: 'POST', sendData: encodedMessage, withCredentials: true);
-    } catch (e) {
-      _logger.severe('Failed to send $message:\n $e');
-      close();
-    }
+    await _requestPool.withResource(() async {
+      try {
+        encodedMessage = jsonEncode(message);
+      } on JsonUnsupportedObjectError catch (e) {
+        _logger.warning('Unable to encode outgoing message: $e');
+      } on ArgumentError catch (e) {
+        _logger.warning('Invalid argument: $e');
+      }
+      try {
+        await HttpRequest.request('$_serverUrl&messageId=${++_lastMessageId}',
+            method: 'POST', sendData: encodedMessage, withCredentials: true);
+      } catch (e) {
+        _logger.severe('Failed to send $message:\n $e');
+        close();
+      }
+    });
   }
 }
