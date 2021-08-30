@@ -53,10 +53,10 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: ${{ matrix.sdk }}
+      - uses: nanasess/setup-chromedriver@3d375deb1534f1c32b9f1a9e463bb6cd30a40593
       - id: install
         name: Install dependencies
         run: dart pub get
       - name: Run VM tests
-        uses: nanasess/setup-chromedriver@3d375deb1534f1c32b9f1a9e463bb6cd30a40593
         run: dart test --platform vm --test-randomize-ordering-seed=random -j 1
         if: always() && steps.install.outcome == 'success'
