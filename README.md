@@ -2,7 +2,7 @@ This package provides support for bi-directional communication through
 Server Sent Events and corresponding POST requests.
 
 This package is not intended to be a general purpose SSE package, but instead
-is intended to be a drop in replacement for Dart's Websocket implementation.
+is a bidirectional protocol for use when Websockets are unavailable.
 That is, both the client and the server expose a `sink` and `stream` on which to send
 and receive messages respectively.
 
