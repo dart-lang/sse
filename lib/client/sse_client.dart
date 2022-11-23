@@ -5,10 +5,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
-import 'dart:js_util' as js_util;
 
 import 'package:js/js.dart';
-import 'package:js/js_util.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:stream_channel/stream_channel.dart';
@@ -143,11 +141,11 @@ class SseClient extends StreamChannelMixin<String?> {
         final url = '$_serverUrl&messageId=${++_lastMessageId}';
         await _fetch(
             url,
-            FetchOptions(
+            _FetchOptions(
                 method: 'POST',
                 body: encodedMessage,
                 credentialsOptions:
-                    CredentialsOptions(credentials: 'include')));
+                    _CredentialsOptions(credentials: 'include')));
       } catch (error) {
         final augmentedError = 'SSE client failed to send $message:\n $error';
         _logger.severe(augmentedError);
@@ -159,29 +157,26 @@ class SseClient extends StreamChannelMixin<String?> {
 
 // Custom implementation of Fetch API until Dart supports GET vs. POST,
 // credentials, etc. See https://github.com/dart-lang/http/issues/595.
-Future<dynamic> _fetch(String resourceUrl, FetchOptions options) {
-  return js_util.promiseToFuture(js_util.callMethod(globalThis, 'fetch', [
-    resourceUrl,
-    options,
-  ]));
-}
+@JS('fetch')
+external Object _nativeJsFetch(String resourceUrl, _FetchOptions options);
+
+Future<dynamic> _fetch(String resourceUrl, _FetchOptions options) =>
+    promiseToFuture(_nativeJsFetch(resourceUrl, options));
 
 @JS()
 @anonymous
-class FetchOptions {
-  external String get method; // e.g., 'GET', 'POST'
-  external CredentialsOptions get credentialsOptions;
-  external String? get body;
-  external factory FetchOptions({
-    String method,
-    CredentialsOptions credentialsOptions,
-    String? body,
+class _FetchOptions {
+  external factory _FetchOptions({
+    required String method, // e.g., 'GET', 'POST'
+    required _CredentialsOptions credentialsOptions,
+    required String? body,
   });
 }
 
 @JS()
 @anonymous
-class CredentialsOptions {
-  external String get credentials; // e.g., 'omit', 'same-origin', 'include'
-  external factory CredentialsOptions({String credentials});
+class _CredentialsOptions {
+  external factory _CredentialsOptions({
+    required String credentials, // e.g., 'omit', 'same-origin', 'include'
+  });
 }
