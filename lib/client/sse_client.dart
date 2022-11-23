@@ -35,6 +35,8 @@ class SseClient extends StreamChannelMixin<String?> {
 
   int _lastMessageId = -1;
 
+  late String _clientId;
+
   late EventSource _eventSource;
 
   late String _serverUrl;
@@ -42,12 +44,14 @@ class SseClient extends StreamChannelMixin<String?> {
   Timer? _errorTimer;
 
   /// [serverUrl] is the URL under which the server is listening for
-  /// incoming bi-directional SSE connections.
-  SseClient(String serverUrl) {
-    var clientId = generateUuidV4();
+  /// incoming bi-directional SSE connections. [debugKey] is an optional key
+  /// that can be used to identify the SSE connection.
+  SseClient(String serverUrl, {String? debugKey}) {
+    var uuid = generateUuidV4();
+    _clientId = debugKey == null ? uuid : '$debugKey-$uuid';
     _eventSource =
-        EventSource('$serverUrl?sseClientId=$clientId', withCredentials: true);
-    _serverUrl = '$serverUrl?sseClientId=$clientId';
+        EventSource('$serverUrl?sseClientId=$_clientId', withCredentials: true);
+    _serverUrl = '$serverUrl?sseClientId=$_clientId';
     _eventSource.onOpen.first.whenComplete(() {
       _onConnected.complete();
       _outgoingController.stream
@@ -108,7 +112,7 @@ class SseClient extends StreamChannelMixin<String?> {
     if (data == 'close') {
       close();
     } else {
-      throw UnsupportedError('Illegal Control Message "$data"');
+      throw UnsupportedError('[$_clientId] Illegal Control Message "$data"');
     }
   }
 
@@ -128,15 +132,15 @@ class SseClient extends StreamChannelMixin<String?> {
       try {
         encodedMessage = jsonEncode(message);
       } on JsonUnsupportedObjectError catch (e) {
-        _logger.warning('Unable to encode outgoing message: $e');
+        _logger.warning('[$_clientId] Unable to encode outgoing message: $e');
       } on ArgumentError catch (e) {
-        _logger.warning('Invalid argument: $e');
+        _logger.warning('[$_clientId] Invalid argument: $e');
       }
       try {
         await HttpRequest.request('$_serverUrl&messageId=${++_lastMessageId}',
             method: 'POST', sendData: encodedMessage, withCredentials: true);
       } catch (e) {
-        _logger.severe('Failed to send $message:\n $e');
+        _logger.severe('[$_clientId] Failed to send $message:\n $e');
         close();
       }
     });
