@@ -27,7 +27,7 @@ final _requestPool = Pool(1000);
 /// them to the [sink] and listen to messages from the server on the [stream].
 class SseClient extends StreamChannelMixin<String?> {
   final String _clientId;
-  
+
   final _incomingController = StreamController<String>();
 
   final _outgoingController = StreamController<String>();
