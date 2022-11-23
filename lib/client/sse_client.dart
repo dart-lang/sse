@@ -26,6 +26,8 @@ final _requestPool = Pool(1000);
 /// The client can send any JSON-encodable messages to the server by adding
 /// them to the [sink] and listen to messages from the server on the [stream].
 class SseClient extends StreamChannelMixin<String?> {
+  final String _clientId;
+  
   final _incomingController = StreamController<String>();
 
   final _outgoingController = StreamController<String>();
@@ -36,8 +38,6 @@ class SseClient extends StreamChannelMixin<String?> {
 
   int _lastMessageId = -1;
 
-  late String _clientId;
-
   late EventSource _eventSource;
 
   late String _serverUrl;
@@ -47,12 +47,12 @@ class SseClient extends StreamChannelMixin<String?> {
   /// [serverUrl] is the URL under which the server is listening for
   /// incoming bi-directional SSE connections. [debugKey] is an optional key
   /// that can be used to identify the SSE connection.
-  SseClient(String serverUrl, {String? debugKey}) {
-    var uuid = generateUuidV4();
-    _clientId = debugKey == null ? uuid : '$debugKey-$uuid';
-    _eventSource =
-        EventSource('$serverUrl?sseClientId=$_clientId', withCredentials: true);
+  SseClient(String serverUrl, {String? debugKey})
+      : _clientId = debugKey == null
+            ? generateUuidV4()
+            : '$debugKey-${generateUuidV4()}' {
     _serverUrl = '$serverUrl?sseClientId=$_clientId';
+    _eventSource = EventSource(_serverUrl, withCredentials: true);
     _eventSource.onOpen.first.whenComplete(() {
       _onConnected.complete();
       _outgoingController.stream
