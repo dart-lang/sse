@@ -1,3 +1,7 @@
+## 4.1.2-dev
+
+- Add an optional `debugKey` parameter to `SseClient` to include in logging.
+
 ## 4.1.1
 
 - Apply `keepAlive` logic to `SocketException`s.
