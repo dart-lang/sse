@@ -5,7 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
+import 'dart:js_util' as js_util;
 
+import 'package:js/js.dart';
+import 'package:js/js_util.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:stream_channel/stream_channel.dart';
@@ -64,13 +67,7 @@ class SseClient extends StreamChannelMixin<String?> {
         // By default the SSE client uses keep-alive.
         // Allow for a retry to connect before giving up.
         _errorTimer = Timer(const Duration(seconds: 5), () {
-          _incomingController.addError(error);
-          close();
-          if (!_onConnected.isCompleted) {
-            // This call must happen after the call to close() which checks
-            // whether the completer was completed earlier.
-            _onConnected.completeError(error);
-          }
+          _closeWithError(error);
         });
       }
     });
@@ -103,6 +100,16 @@ class SseClient extends StreamChannelMixin<String?> {
     _outgoingController.close();
   }
 
+  void _closeWithError(Object error) {
+    _incomingController.addError(error);
+    close();
+    if (!_onConnected.isCompleted) {
+      // This call must happen after the call to close() which checks
+      // whether the completer was completed earlier.
+      _onConnected.completeError(error);
+    }
+  }
+
   void _onIncomingControlMessage(Event message) {
     var data = (message as MessageEvent).data;
     if (data == 'close') {
@@ -133,12 +140,48 @@ class SseClient extends StreamChannelMixin<String?> {
         _logger.warning('Invalid argument: $e');
       }
       try {
-        await HttpRequest.request('$_serverUrl&messageId=${++_lastMessageId}',
-            method: 'POST', sendData: encodedMessage, withCredentials: true);
-      } catch (e) {
-        _logger.severe('Failed to send $message:\n $e');
-        close();
+        final url = '$_serverUrl&messageId=${++_lastMessageId}';
+        await _fetch(
+            url,
+            FetchOptions(
+                method: 'POST',
+                body: encodedMessage,
+                credentialsOptions:
+                    CredentialsOptions(credentials: 'include')));
+      } catch (error) {
+        final augmentedError = 'SSE client failed to send $message:\n $error';
+        _logger.severe(augmentedError);
+        _closeWithError(augmentedError);
       }
     });
   }
+}
+
+// Custom implementation of Fetch API until Dart supports GET vs. POST,
+// credentials, etc. See https://github.com/dart-lang/http/issues/595.
+Future<dynamic> _fetch(String resourceUrl, FetchOptions options) {
+  return js_util.promiseToFuture(js_util.callMethod(globalThis, 'fetch', [
+    resourceUrl,
+    options,
+  ]));
+}
+
+@JS()
+@anonymous
+class FetchOptions {
+  external String get method; // e.g., 'GET', 'POST'
+  external CredentialsOptions get credentialsOptions;
+  external String? get body;
+  external factory FetchOptions({
+    String method,
+    CredentialsOptions credentialsOptions,
+    String? body,
+  });
+}
+
+@JS()
+@anonymous
+class CredentialsOptions {
+  external String get credentials; // e.g., 'omit', 'same-origin', 'include'
+  external factory CredentialsOptions({String credentials});
 }
