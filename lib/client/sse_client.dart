@@ -146,9 +146,7 @@ class SseClient extends StreamChannelMixin<String?> {
         await _fetch(
             url,
             _FetchOptions(
-                method: 'POST',
-                body: encodedMessage,
-                credentials: 'include'));
+                method: 'POST', body: encodedMessage, credentials: 'include'));
       } catch (error) {
         final augmentedError =
             '[$_clientId] SSE client failed to send $message:\n $error';
