@@ -2,7 +2,7 @@
 
 - Send `fetch` requests instead of `XHR` requests.
 - Add an optional `debugKey` parameter to `SseClient` to include in logging.
-- Add a dev dependency on `package:js`.
+- Add a dependency on `package:js`.
 - Update the minimum Dart SDK version to `2.16.0`.
 
 ## 4.1.1
