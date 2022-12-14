@@ -7,7 +7,7 @@ description: >-
 repository: https://github.com/dart-lang/sse
 
 environment:
-  sdk: '>=2.18.0 <3.0.0'
+  sdk: '>=2.15.0 <3.0.0'
 
 dependencies:
   async: ^2.0.8
@@ -18,7 +18,7 @@ dependencies:
   stream_channel: '>=1.6.8 <3.0.0'
 
 dev_dependencies:
-  js: ^0.6.5
+  js: ^0.6.4
   lints: ^1.0.0
   shelf_static: '>=0.2.8 <2.0.0'
   test: ^1.5.3
