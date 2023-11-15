@@ -150,7 +150,7 @@ class SseClient extends StreamChannelMixin<String?> {
             url,
             RequestInit(
                 method: 'POST',
-                body: encodedMessage.jsify(),
+                body: encodedMessage?.toJS,
                 credentials: 'include'));
       } catch (error) {
         final augmentedError =
