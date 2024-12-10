@@ -1,3 +1,6 @@
+> [!IMPORTANT]  
+> This repo has moved to https://github.com/dart-lang/tools/tree/main/pkgs/sse
+
 [![Dart CI](https://github.com/dart-lang/sse/actions/workflows/test-package.yml/badge.svg)](https://github.com/dart-lang/sse/actions/workflows/test-package.yml)
 [![pub package](https://img.shields.io/pub/v/sse.svg)](https://pub.dev/packages/sse)
 [![package publisher](https://img.shields.io/pub/publisher/sse.svg)](https://pub.dev/packages/sse/publisher)
